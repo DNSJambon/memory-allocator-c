@@ -60,6 +60,17 @@ struct ub {
    size_t size;
 };
 
+struct fb *precedent(struct fb *fb){
+    struct fb *ptr_fb = get_header()->first_fb;
+    if (ptr_fb == fb) {
+        return NULL;
+    }
+    while (ptr_fb->next != fb) {
+        ptr_fb = ptr_fb->next;
+    }
+    return ptr_fb;
+}
+
 //
 void mem_init(void *mem, size_t taille) {
     memory_addr = mem;
@@ -77,7 +88,6 @@ void mem_init(void *mem, size_t taille) {
     struct fb *ptr_fb = (struct fb*)(mem + sizeof(struct all_h));
     ptr_fb->size = taille - sizeof(struct all_h);
     ptr_fb->next = NULL;
-    ptr_fb->free=1;
     ptr_h->first_fb = ptr_fb;
     
 
@@ -88,19 +98,22 @@ void mem_init(void *mem, size_t taille) {
 
 void mem_show(void (*print)(void *, size_t, int)) {
     unsigned long i = (unsigned long)memory_addr+sizeof(struct all_h);
-    void *addr=void*(get_header()+1);
+    void *addr=(void*)(get_header()+1);
     struct fb *fb_next = (get_header())->first_fb;
-    while (addr<memory_addr+(get_header())->first_fb->mem_size) {
+
+    while (addr<memory_addr+(get_header())->mem_size) {
         size_t t = *(size_t*)i;
+
         if ( (void*)fb_next == addr ) {
             print((void*)i,t,1);
             fb_next=fb_next->next;
-            addr=adr + ((struct ub*)addr)->size
+            addr=addr + ((struct fb*)addr)->size;
         }
         else {
             print((void*)i,t,0);
-            addr=addr + ((struct ub*)addr)->size
+            addr=addr + ((struct ub*)addr)->size;
         };
+
         i+=t;
     }
 }
@@ -110,12 +123,36 @@ void mem_fit(mem_fit_function_t *f) {
 }
 
 void *mem_alloc(size_t taille) {
-    /* ... */
+    if (taille < sizeof(struct fb)) {
+        taille = sizeof(struct fb);
+    }
     __attribute__((
         unused)) /* juste pour que gcc compile ce squelette avec -Werror */
-    struct fb *fb = get_header()->fit(/*...*/ NULL, /*...*/ 0);
+    struct fb *fb = get_header()->fit(get_header()->first_fb, taille);
+    if (fb == NULL) {
+        return NULL;
+    }
+    struct fb *fb_prev = precedent(fb);
+    struct ub *ub = (struct ub*)fb;
+    ub->size = taille+sizeof(struct ub);
+    if (fb->size==ub->size){
+        if (fb_prev == NULL)
+            get_header()->first_fb = fb->next;
+        else
+            fb_prev->next = fb->next;
+
+    }
+    else {
+        struct fb *fb_new = fb+ub->size;
+        fb_new->size = fb->size - ub->size;
+
+        fb_prev->next = fb_new;
+        fb_new->next = fb->next;
+ 
+    }
+
     /* ... */
-    return NULL;
+    return (void*)(ub+1);
 }
 
 
@@ -123,11 +160,14 @@ void mem_free(void *mem) {
 }
 
 struct fb *mem_fit_first(struct fb *list, size_t size) {
-    struct fb *tmp= list;
-    while (tmp->mem_size<size) {
-        tmp=tmp->next;
-    };
-    return tmp;
+    struct fb *ptr_fb = list;
+    while (ptr_fb != NULL) {
+        if (ptr_fb->size >= size+sizeof(struct ub)) {
+            return ptr_fb;
+        }
+        ptr_fb = ptr_fb->next;
+    }
+    return NULL;
 }
 
 /* Fonction à faire dans un second temps
