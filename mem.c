@@ -82,11 +82,11 @@ void mem_init(void *mem, size_t taille) {
 }
 
 void mem_show(void (*print)(void *, size_t, int)) {
-    int i = memory_addr+sizeof(struct all_h);
+    int i = (int)memory_addr+sizeof(struct all_h);
     while (i < memory_addr+get_system_memory_size()-sizeof(struct all_h)) {
         size_t t = *(size_t*)i;
-        print(/* ... */ NULL, /* ... */ 0, /* ... */ 0);
-        /* ... */
+        print(i,t,0);
+        i+=t
     }
 }
 
