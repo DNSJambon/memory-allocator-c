@@ -54,7 +54,10 @@ struct fb {
     // Taille, entête compris
     size_t size;
     struct fb *next;
-       /* ... */
+};
+
+struct ub {
+   size_t size;
 };
 
 //
@@ -74,7 +77,9 @@ void mem_init(void *mem, size_t taille) {
     struct fb *ptr_fb = (struct fb*)(mem + sizeof(struct all_h));
     ptr_fb->size = taille - sizeof(struct all_h);
     ptr_fb->next = NULL;
+    ptr_fb->free=1;
     ptr_h->first_fb = ptr_fb;
+    
 
 
     /* On enregistre une fonction de recherche par défaut */
@@ -82,11 +87,21 @@ void mem_init(void *mem, size_t taille) {
 }
 
 void mem_show(void (*print)(void *, size_t, int)) {
-    int i = (int)memory_addr+sizeof(struct all_h);
-    while (i < memory_addr+get_system_memory_size()-sizeof(struct all_h)) {
+    unsigned long i = (unsigned long)memory_addr+sizeof(struct all_h);
+    void *addr=void*(get_header()+1);
+    struct fb *fb_next = (get_header())->first_fb;
+    while (addr<memory_addr+(get_header())->first_fb->mem_size) {
         size_t t = *(size_t*)i;
-        print(i,t,0);
-        i+=t
+        if ( (void*)fb_next == addr ) {
+            print((void*)i,t,1);
+            fb_next=fb_next->next;
+            addr=adr + ((struct ub*)addr)->size
+        }
+        else {
+            print((void*)i,t,0);
+            addr=addr + ((struct ub*)addr)->size
+        };
+        i+=t;
     }
 }
 
@@ -108,7 +123,11 @@ void mem_free(void *mem) {
 }
 
 struct fb *mem_fit_first(struct fb *list, size_t size) {
-    return NULL;
+    struct fb *tmp= list;
+    while (tmp->mem_size<size) {
+        tmp=tmp->next;
+    };
+    return tmp;
 }
 
 /* Fonction à faire dans un second temps
