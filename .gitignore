@@ -1,0 +1,5 @@
+*.o
+.*.o.deps
+/libmalloc.so
+/memshell
+/test_init
