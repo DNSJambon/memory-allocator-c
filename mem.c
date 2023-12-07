@@ -166,6 +166,15 @@ void *mem_alloc(size_t taille) {
 
 
 void mem_free(void *mem) {
+
+}
+
+int is_fb (void* ufb) {
+    struct fb *fbf = get_header()->first_fb;
+    while (fbf<ufb) {
+
+    }
+     
 }
 
 struct fb *mem_fit_first(struct fb *list, size_t size) {
