@@ -146,12 +146,18 @@ void *mem_alloc(size_t taille) {
     }
     else {
 
-        struct fb *fb_new = fb+ub->size;
-        fb_new->size = fb->size - ub->size;
+        struct fb *fb_new = fb+ sizeof(struct ub) + taille;
+        fb_new->size = fb->size - (sizeof(struct ub) + taille);
 
-        fb_prev->next = fb_new;
-        fb_new->next = fb->next;
- 
+        if (fb_prev != NULL){
+            fb_prev->next = fb_new;
+            fb_new->next = fb->next;
+        }
+        else {
+            get_header()->first_fb = fb_new;
+            fb_new->next = fb->next;    
+        }
+    
     }
 
     ub->size = taille+sizeof(struct ub);
