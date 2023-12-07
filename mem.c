@@ -170,9 +170,9 @@ void mem_free(void *mem) {
 
 }
 
-int fb_prev (void* ufb) {
+int is_fb (void* ufb) {
     struct fb *fbf = get_header()->first_fb;
-    while (fbf<ufb) {
+    while (fbf=<ufb) {
         fbf=fbf->next;
     }
     return precedent(fbf);
