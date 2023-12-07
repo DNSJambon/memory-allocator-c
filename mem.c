@@ -102,7 +102,6 @@ void mem_show(void (*print)(void *, size_t, int)) {
     struct fb *fb_next = (get_header())->first_fb;
 
     while (addr<memory_addr+(get_header())->mem_size) {
-        printf("addr %p, fbnext %p  \n",addr, (void*)fb_next);
         size_t t = *(size_t*)i;
 
         if ( (void*)fb_next == addr ) {
@@ -124,6 +123,7 @@ void mem_fit(mem_fit_function_t *f) {
 }
 
 void *mem_alloc(size_t taille) {
+
     if (taille < sizeof(struct fb)) {
         taille = sizeof(struct fb);
     }
@@ -147,7 +147,6 @@ void *mem_alloc(size_t taille) {
     else {
 
         struct fb *fb_new = (void*)fb+ sizeof(struct ub) + taille;
-        printf("fb_new %p, fb %p\n",fb_new, fb);
         fb_new->size = fb->size - (sizeof(struct ub) + taille);
 
         if (fb_prev != NULL){
