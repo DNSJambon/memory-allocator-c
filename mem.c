@@ -164,10 +164,10 @@ void *mem_alloc(size_t taille) {
     return (void*)(ub+1);
 }
 
-void *find_prev(void *ptr){
+void is_fb(void *ubf){
     struct fb *fbf = get_header()->first_fb;
-    while (fbf<=ptr) {
-        if (fbf==ufb) {
+    while (fbf<=ubf) {
+        if (fbf==ubf) {
             return 1;
         };
         fbf=fbf->next;
