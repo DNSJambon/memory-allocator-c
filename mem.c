@@ -136,7 +136,7 @@ void *mem_alloc(size_t taille) {
     struct fb *fb_prev = precedent(fb);
     struct ub *ub = (struct ub*)fb;
     
-    printf("vrai fb %p/%lu, fb %p/%lu\n", get_header()->first_fb,get_header()->first_fb->size, fb, fb->size);
+
     if (fb->size==taille+sizeof(struct ub)){
         if (fb_prev == NULL)
             get_header()->first_fb = fb->next;
@@ -146,7 +146,8 @@ void *mem_alloc(size_t taille) {
     }
     else {
 
-        struct fb *fb_new = fb+ sizeof(struct ub) + taille;
+        struct fb *fb_new = (void*)fb+ sizeof(struct ub) + taille;
+        printf("fb_new %p, fb %p\n",fb_new, fb);
         fb_new->size = fb->size - (sizeof(struct ub) + taille);
 
         if (fb_prev != NULL){
