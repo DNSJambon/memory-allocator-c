@@ -176,7 +176,9 @@ void is_fb(void *ubf){
 }
 
 void mem_free(void *mem) {
+    if (is_fb((void*(prev_fb(mem)))) and is_fb(((void*)fb+ sizeof(struct ub) + taille))){
 
+    }
 }
 
 
