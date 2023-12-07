@@ -187,7 +187,7 @@ void *prev_fb(void *ptr){
 }
 
 void mem_free(void *mem) {
-    if (is_fb((void*(prev_fb(mem)))) and is_fb(((void*)fb+ sizeof(struct ub) + taille))){
+    if (is_fb(((prev_fb(mem)))) & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))){
 
     }
 }
