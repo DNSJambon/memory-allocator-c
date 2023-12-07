@@ -190,16 +190,16 @@ void *prev_fb(void *ptr){
 }
 
 void mem_free(void *mem) {
-    if (is_fb(((prev_b(mem))))==0 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==0){ /*check si ub.mem.ub*/
+    if (is_fb(prev_b(mem))==0 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==0){ /*check si ub.mem.ub*/
         struct fb *free_fb;
         free_fb =mem;
         free_fb->next=((struct fb*)prev_fb(mem))->next;
         ((struct fb*)prev_fb(mem))->next = free_fb;
     }
-    else if (is_fb(((prev_b(mem))))==1 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==0){ /*check si fb.mem.ub*/
+    else if (is_fb(prev_b(mem))==1 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==0){ /*check si fb.mem.ub*/
 
     }
-    else if (is_fb(((prev_b(mem))))==0 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==1){ /*check si ub.mem.fb*/
+    else if (is_fb(prev_b(mem))==0 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==1){ /*check si ub.mem.fb*/
 
     }
     else { /*il reste fb.mem.fb*/
