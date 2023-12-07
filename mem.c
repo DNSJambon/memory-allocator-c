@@ -173,9 +173,12 @@ void mem_free(void *mem) {
 int is_fb (void* ufb) {
     struct fb *fbf = get_header()->first_fb;
     while (fbf<=ufb) {
+        if (fbf==ufb) {
+            return 1;
+        };
         fbf=fbf->next;
     }
-    return precedent(fbf);
+    return 0;
 }
 
 struct fb *mem_fit_first(struct fb *list, size_t size) {
