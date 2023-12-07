@@ -135,6 +135,10 @@ void *mem_alloc(size_t taille) {
     struct fb *fb_prev = precedent(fb);
     struct ub *ub = (struct ub*)fb;
     ub->size = taille+sizeof(struct ub);
+    if (fb->next=NULL) {
+        
+    }
+    
     if (fb->size==ub->size){
         if (fb_prev == NULL)
             get_header()->first_fb = fb->next;
