@@ -177,7 +177,13 @@ int is_fb(void *ptr){
 
 void *prev_fb(void *ptr){
     void *ptr_fb = (void *)get_header()->first_fb;
-    
+    while (ptr_fb<=ptr) {
+        if (ptr_fb==ptr) {
+            return ptr_fb;
+        }
+        ptr_fb=ptr_fb + ((struct fb*)ptr_fb)->size;
+    }
+
 }
 
 void mem_free(void *mem) {
