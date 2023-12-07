@@ -164,7 +164,7 @@ void *mem_alloc(size_t taille) {
     return (void*)(ub+1);
 }
 
-void *is_fp(void *ptr){
+int is_fb(void *ptr){
     struct fb *fbf = get_header()->first_fb;
     while (fbf<=ptr) {
         if (fbf==ptr) {
