@@ -164,15 +164,9 @@ void *mem_alloc(size_t taille) {
     return (void*)(ub+1);
 }
 
-void *find_prev(void *ptr);
-
-void mem_free(void *mem) {
-
-}
-
-int is_fb (void* ufb) {
+void *find_prev(void *ptr){
     struct fb *fbf = get_header()->first_fb;
-    while (fbf<=ufb) {
+    while (fbf<=ptr) {
         if (fbf==ufb) {
             return 1;
         };
@@ -180,6 +174,11 @@ int is_fb (void* ufb) {
     }
     return 0;
 }
+
+void mem_free(void *mem) {
+
+}
+
 
 struct fb *mem_fit_first(struct fb *list, size_t size) {
     struct fb *ptr_fb = list;
