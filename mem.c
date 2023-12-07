@@ -151,7 +151,7 @@ void *mem_alloc(size_t taille) {
  
     }
 
-    /* ... */
+    /* ... test*/
     return (void*)(ub+1);
 }
 
