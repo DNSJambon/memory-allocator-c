@@ -164,26 +164,29 @@ void *mem_alloc(size_t taille) {
     return (void*)(ub+1);
 }
 
-int is_fb(void *ptr){
-    struct fb *fbf = get_header()->first_fb;
-    while (fbf<=ptr) {
-        if (fbf==ptr) {
+int is_fb(void *ptr){ 
+    void * fb = (void *)get_header()->first_fb;
+    while (fb != NULL) {
+        if (fb == ptr) {
             return 1;
-        };
-        fbf=fbf->next;
+        }
+        fb = ((struct fb*)fb)->next;
     }
     return 0;
 }
 
+// renvoie dernier bloc libre avant ptr
 void *prev_fb(void *ptr){
-    void *ptr_fb = (void *)get_header()->first_fb;
-    while (ptr_fb<=ptr) {
-        if (ptr_fb==ptr) {
-            return ptr_fb;
+    void * fb = (void *)get_header()->first_fb;
+    void * prev_fb = NULL;
+    while (fb != NULL) {
+        if (fb > ptr) {
+            return prev_fb;
         }
-        ptr_fb=ptr_fb + ((struct fb*)ptr_fb)->size;
+        prev_fb = fb;
+        fb =(void *)((struct fb*)fb)->next;
     }
-
+    return NULL;
 }
 
 void mem_free(void *mem) {
