@@ -164,6 +164,7 @@ void *mem_alloc(size_t taille) {
     return (void*)(ub+1);
 }
 
+void *find_prev(void *ptr);
 
 void mem_free(void *mem) {
 
