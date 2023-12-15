@@ -232,7 +232,7 @@ void mem_free(void *mem) {
         if (ptr+((struct fb*)ptr)->size==((struct fb*)ptr)->next){
             size_t s=(((struct fb*)ptr)->next)->size;
             ((struct fb*)ptr)->next=(((struct fb*)ptr)->next)->next;
-            ((struct fb*)ptr)->size=s;
+            ((struct fb*)ptr)->size=((struct fb*)ptr)->size+s;
         }
         else {
            ptr=(void*)(((struct fb*)ptr)->next);
