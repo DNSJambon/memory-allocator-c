@@ -161,7 +161,7 @@ void *mem_alloc(size_t taille) {
     }
 
     ub->size = taille+sizeof(struct ub);
-    return (void*)(ub+1);
+    return (void*)(ub);
 }
 
 /*FONCTIONS POUR FREE*/
