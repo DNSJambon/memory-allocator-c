@@ -189,52 +189,43 @@ void *prev_fb(void *ptr){
     return NULL;
 }
 
-void* prev_b(void * ptr ) {
-    void * prev= prev_fb(ptr);
-    if (prev != NULL) {
-
-        if ((prev+((struct fb*)prev)->size)==ptr){
-            return prev;
+void *next_fb(void *ptr){
+    void * fb = (void *)get_header()->first_fb;
+    while (fb != NULL) {
+        if (fb > ptr) {
+            return fb;
         }
-        else {
-            prev=(prev+((struct fb*)prev)->size);
-            while ((prev+((struct ub*)prev)->size)<ptr) {
-                prev=prev+((struct ub*)prev)->size;
-            }
-            return prev;
-        }
+        fb =(void *)((struct fb*)fb)->next;
     }
-
-    else {
-        prev = get_header()+1;
-        if (prev == ptr){
-            return NULL;
-        }
-        while ((prev+((struct ub*)prev)->size)<ptr) {
-                prev=prev+((struct ub*)prev)->size;
-            }
-            return prev;
-    }
+    return NULL;
 }
 
 
 void mem_free(void *mem) {
-    if (is_fb(prev_b(mem))==0 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==0){ /*check si ub.mem.ub*/
-        struct fb *free_fb;
-        free_fb =mem;
-        free_fb->next=((struct fb*)prev_fb(mem))->next;
-        ((struct fb*)prev_fb(mem))->next = free_fb;
-    }
-    else if (is_fb(prev_b(mem))==1 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==0){ /*check si fb.mem.ub*/
+    struct fb *free_mem;
+    size_t s=((struct ub*)mem)->size;
+    free_mem =mem;
+    free_mem->size=s;
+    free_mem->next=NULL;
 
-    }
-    else if (is_fb(prev_b(mem))==0 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==1){ /*check si ub.mem.fb*/
+    void *prev = prev_fb(free_mem);
+    void *next = next_fb(free_mem);
 
+    //On commene par lier le nouveau bloc libre avec le bloc précédent
+    if (prev != NULL){
+        ((struct fb*)prev)->next = free_mem;
     }
-    else { /*il reste fb.mem.fb*/
-
+    else {
+        get_header()->first_fb = free_mem;
     }
 
+    //On lie le nouveau bloc libre avec le bloc suivant
+    if (next != NULL){
+        free_mem->next = next;
+    }
+    else {
+        free_mem->next = NULL;
+    }
 }
 
 
