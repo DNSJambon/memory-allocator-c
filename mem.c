@@ -200,8 +200,22 @@ void *next_fb(void *ptr){
     return NULL;
 }
 
+void fusion_fb () {
+        void*ptr=get_header()->first_fb;
+    while (((struct fb*)ptr)->next!=NULL)
+        if (ptr+((struct fb*)ptr)->size==((struct fb*)ptr)->next){
+            size_t s=(((struct fb*)ptr)->next)->size;
+            ((struct fb*)ptr)->next=(((struct fb*)ptr)->next)->next;
+            ((struct fb*)ptr)->size=((struct fb*)ptr)->size+s;
+        }
+        else {
+           ptr=(void*)(((struct fb*)ptr)->next);
+        }
+}
+
 
 void mem_free(void *mem) {
+    if (is_fb(mem)==1) return;
     struct fb *free_mem;
     size_t s=((struct ub*)mem)->size;
     free_mem =mem;
@@ -227,16 +241,7 @@ void mem_free(void *mem) {
         free_mem->next = NULL;
     }
     //On concatène ensuite avec les zone libre autour
-    void*ptr=get_header()->first_fb;
-    while (((struct fb*)ptr)->next!=NULL)
-        if (ptr+((struct fb*)ptr)->size==((struct fb*)ptr)->next){
-            size_t s=(((struct fb*)ptr)->next)->size;
-            ((struct fb*)ptr)->next=(((struct fb*)ptr)->next)->next;
-            ((struct fb*)ptr)->size=((struct fb*)ptr)->size+s;
-        }
-        else {
-           ptr=(void*)(((struct fb*)ptr)->next);
-        }
+    fusion_fb();
 
 }
 
