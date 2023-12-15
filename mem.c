@@ -200,17 +200,17 @@ void *next_fb(void *ptr){
     return NULL;
 }
 
-void fusion_fb () {
-        void*ptr=get_header()->first_fb;
-    while (((struct fb*)ptr)->next!=NULL)
-        if (ptr+((struct fb*)ptr)->size==((struct fb*)ptr)->next){
-            size_t s=(((struct fb*)ptr)->next)->size;
-            ((struct fb*)ptr)->next=(((struct fb*)ptr)->next)->next;
-            ((struct fb*)ptr)->size=((struct fb*)ptr)->size+s;
+void fusion_fb(){
+    struct fb *fb = get_header()->first_fb;
+    while (fb->next != NULL){
+        if ((unsigned long)fb + fb->size == (unsigned long)fb->next){
+            fb->size += fb->next->size;
+            fb->next = fb->next->next;
         }
         else {
-           ptr=(void*)(((struct fb*)ptr)->next);
+            fb = fb->next;
         }
+    }
 }
 
 
