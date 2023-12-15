@@ -190,18 +190,33 @@ void *prev_fb(void *ptr){
 }
 
 void* prev_b(void * ptr ) {
-    void * prev=prev_fb(ptr);
-    if ((prev+((struct fb*)prev)->size)==ptr){
-        return prev;
-    }
-    else {
-        prev=(prev+((struct fb*)prev)->size);
-        while ((prev+((struct ub*)prev)->size)<ptr) {
-            prev=prev+((struct ub*)prev)->size;
+    void * prev= prev_fb(ptr);
+    if (prev != NULL) {
+
+        if ((prev+((struct fb*)prev)->size)==ptr){
+            return prev;
         }
-        return prev;
+        else {
+            prev=(prev+((struct fb*)prev)->size);
+            while ((prev+((struct ub*)prev)->size)<ptr) {
+                prev=prev+((struct ub*)prev)->size;
+            }
+            return prev;
+        }
+    }
+
+    else {
+        prev = get_header()+1;
+        if (prev == ptr){
+            return NULL;
+        }
+        while ((prev+((struct ub*)prev)->size)<ptr) {
+                prev=prev+((struct ub*)prev)->size;
+            }
+            return prev;
     }
 }
+
 
 void mem_free(void *mem) {
     if (is_fb(prev_b(mem))==0 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==0){ /*check si ub.mem.ub*/
