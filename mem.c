@@ -226,6 +226,18 @@ void mem_free(void *mem) {
     else {
         free_mem->next = NULL;
     }
+    //On concatène ensuite avec les zone libre autour
+    void*ptr=get_header()->first_fb;
+    while (((struct fb*)ptr)->next!=NULL)
+        if (ptr+((struct fb*)ptr)->size==((struct fb*)ptr)->next){
+            size_t s=(((struct fb*)ptr)->next)->size;
+            ((struct fb*)ptr)->next=(((struct fb*)ptr)->next)->next;
+            ((struct fb*)ptr)->size=s;
+        }
+        else {
+           ptr=(void*)(((struct fb*)ptr)->next);
+        }
+
 }
 
 
