@@ -13,7 +13,7 @@ CFLAGS+= -DDEBUG
 # pour tester avec ls
 CFLAGS+= -fPIC
 LDFLAGS= $(HOST32)
-TESTS=test_init
+TESTS=test_init test_alloc
 PROGRAMS=memshell $(TESTS)
 
 
