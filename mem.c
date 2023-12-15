@@ -164,6 +164,9 @@ void *mem_alloc(size_t taille) {
     return (void*)(ub+1);
 }
 
+/*FONCTIONS POUR FREE*/
+
+// renvoie 1 si ptr est l'adresse d'un bloc libre, 0 sinon
 int is_fb(void *ptr){ 
     void * fb = (void *)get_header()->first_fb;
     while (fb != NULL) {
@@ -189,6 +192,10 @@ void *prev_fb(void *ptr){
     return NULL;
 }
 
+<<<<<<< HEAD
+=======
+// renvoie premier bloc libre après ptr
+>>>>>>> 3b576a0 (free ok)
 void *next_fb(void *ptr){
     void * fb = (void *)get_header()->first_fb;
     while (fb != NULL) {
@@ -200,6 +207,10 @@ void *next_fb(void *ptr){
     return NULL;
 }
 
+<<<<<<< HEAD
+=======
+//fonction qui fusionne les blocs libres adjacents
+>>>>>>> 3b576a0 (free ok)
 void fusion_fb(){
     struct fb *fb = get_header()->first_fb;
     while (fb->next != NULL){
@@ -213,6 +224,7 @@ void fusion_fb(){
     }
 }
 
+<<<<<<< HEAD
 
 void mem_free(void *mem) {
     if (is_fb(mem)==1) return;
@@ -242,9 +254,39 @@ void mem_free(void *mem) {
     }
     //On concatène ensuite avec les zone libre autour
     fusion_fb();
+=======
+void mem_free(void *mem) {
+    if (is_fb(mem)==1) return;
+    
+    //libération du bloc:
+    size_t s = ((struct ub*)mem)->size;
+    struct fb *free_fb = mem;
+    free_fb->size = s;
+    free_fb->next = NULL;
 
+    void * prev = prev_fb(mem);
+    void * next = next_fb(mem);
+    //On commene par lier le nouveau bloc libre avec le bloc précédent:
+    if (prev != NULL)
+        ((struct fb*)prev)->next = free_fb;   
+    else 
+        get_header()->first_fb = free_fb;   
+>>>>>>> 3b576a0 (free ok)
+
+    //On lie le nouveau bloc libre avec le bloc suivant
+    if (next != NULL)
+        free_fb->next = next;    
+    else 
+        free_fb->next = NULL;
+    
+    //On fusionne les blocs libres adjacents
+    fusion_fb();
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3b576a0 (free ok)
 
 struct fb *mem_fit_first(struct fb *list, size_t size) {
     struct fb *ptr_fb = list;
