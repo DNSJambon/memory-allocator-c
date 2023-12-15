@@ -190,7 +190,7 @@ void *prev_fb(void *ptr){
 }
 
 void* prev_b(void * ptr ) {
-    void * prev=(void*)prev_fb(ptr);
+    void * prev=prev_fb(ptr);
     if ((prev+((struct fb*)prev)->size)==ptr){
         return prev;
     }
