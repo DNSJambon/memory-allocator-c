@@ -50,17 +50,17 @@ static inline size_t get_system_memory_size() {
     return get_header()->mem_size;
 }
 
-struct fb {
+struct fb { // Block de mémoire libre
     // Taille, entête compris
     size_t size;
     struct fb *next;
 };
 
-struct ub {
+struct ub { // Block de memoire pleine
    size_t size;
 };
 
-struct fb *precedent(struct fb *fb){
+struct fb *precedent(struct fb *fb){ //rend le block libre précedent
     struct fb *ptr_fb = get_header()->first_fb;
     if (ptr_fb == fb) {
         return NULL;
@@ -189,6 +189,20 @@ void *prev_fb(void *ptr){
     return NULL;
 }
 
+void* prev_b(void * ptr ) {
+    void * prev=(void*)prev_fb(ptr);
+    if ((prev+((struct fb*)prev)->size)==ptr){
+        return prev;
+    }
+    else {
+        prev=(prev+((struct fb*)prev)->size);
+        while ((prev+((struct ub*)prev)->size)<ptr) {
+            prev=prev+((struct ub*)prev)->size;
+        }
+        return prev;
+    }
+}
+
 void mem_free(void *mem) {
     if (is_fb(prev_b(mem))==0 & is_fb(((void*)mem+ sizeof(struct ub) + ((struct ub*)mem)->size))==0){ /*check si ub.mem.ub*/
         struct fb *free_fb;
@@ -208,9 +222,6 @@ void mem_free(void *mem) {
 
 }
 
-void* prev_b(void * ptr ) {
-    return ptr;
-}
 
 struct fb *mem_fit_first(struct fb *list, size_t size) {
     struct fb *ptr_fb = list;
