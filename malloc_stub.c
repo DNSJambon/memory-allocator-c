@@ -5,6 +5,11 @@
 
 static __thread int in_lib = 0;
 
+void afficher_zone(void *adresse, size_t taille, int free) {
+    printf("Zone %s, Adresse : %lu, Taille : %lu\n", free ? "libre" : "occupee",
+           adresse - get_memory_adr(), (unsigned long)taille);
+}
+
 #define dprintf(args...)                                                       \
     do {                                                                       \
         if (!in_lib) {                                                         \
@@ -15,6 +20,7 @@ static __thread int in_lib = 0;
     } while (0)
 
 static void init() {
+    
     static int first = 1;
 
     if (first) {
@@ -23,14 +29,18 @@ static void init() {
     }
 }
 
+
+
 void *malloc(size_t s) {
+
     void *result;
 
     init();
     dprintf("Allocation de %lu octets...", (unsigned long)s);
     result = mem_alloc(s);
-    if (!result)
-        dprintf(" Alloc FAILED !!");
+    if (!result){
+        dprintf(" Alloc FAILED !!\n");
+        }
     else
         dprintf(" %lx\n", (unsigned long)result);
     return result;
@@ -45,7 +55,7 @@ void *calloc(size_t count, size_t size) {
     dprintf("Allocation de %zu octets\n", s);
     p = mem_alloc(s);
     if (!p)
-        dprintf(" Alloc FAILED !!");
+        dprintf(" Alloc FAILED !!\n");
     if (p)
         for (i = 0; i < s; i++)
             p[i] = 0;
@@ -79,11 +89,13 @@ void *realloc(void *ptr, size_t size) {
 }
 
 void free(void *ptr) {
+
     init();
     if (ptr) {
         dprintf("Liberation de la zone en %lx\n", (unsigned long)ptr);
         mem_free(ptr);
     } else {
         dprintf("Liberation de la zone NULL\n");
+        
     }
 }
