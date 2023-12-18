@@ -17,6 +17,8 @@
 #define ALIGNMENT 16
 #endif
 
+
+
 /* structure placée au début de la zone de l'allocateur
 
    Elle contient toutes les variables globales nécessaires au
@@ -28,7 +30,7 @@ struct all_h {
     size_t mem_size;
     mem_fit_function_t *fit;
     struct fb *first_fb;
-};
+} __attribute__((aligned(16)));
 
 /* La seule variable globale autorisée
  * On trouve à cette adresse le début de la zone à gérer
@@ -60,7 +62,9 @@ struct ub { // Block de memoire pleine
    size_t size;
 };
 
-struct fb *precedent(struct fb *fb){ //rend le block libre précedent
+
+//renvoie le bloc libre précédent le bloc fb dans la liste chainée
+struct fb *precedent(struct fb *fb){ 
     struct fb *ptr_fb = get_header()->first_fb;
     if (ptr_fb == fb) {
         return NULL;
@@ -93,30 +97,38 @@ void mem_init(void *mem, size_t taille) {
 
 
     /* On enregistre une fonction de recherche par défaut */
-    mem_fit(&mem_fit_first);
+    mem_fit(&mem_fit_best);
 }
 
+// renvoie 1 si ptr est l'adresse d'un bloc libre, 0 sinon
+int is_fb(void *ptr){ 
+    void * fb = (void *)get_header()->first_fb;
+    while (fb != NULL) {
+        if (fb == ptr) {
+            return 1;
+        }
+        fb = ((struct fb*)fb)->next;
+    }
+    return 0;
+}
+
+// fonction qui affiche les infos sur les blocs  libres et occupés de la mémoire en utilisant is_fb
 void mem_show(void (*print)(void *, size_t, int)) {
-    unsigned long i = (unsigned long)memory_addr+sizeof(struct all_h);
-    void *addr=(void*)(get_header()+1);
-    struct fb *fb_next = (get_header())->first_fb;
-
-    while (addr<memory_addr+(get_header())->mem_size) {
-        size_t t = *(size_t*)i;
-
-        if ( (void*)fb_next == addr ) {
-            print((void*)i,t,1);
-            fb_next=fb_next->next;
-            addr=addr + ((struct fb*)addr)->size;
+    void *ptr = get_header()+1;
+    while (ptr < get_system_memory_addr() + get_system_memory_size()) {
+        if (is_fb(ptr)) {
+            print(ptr, ((struct fb*)ptr)->size, 1);
+            ptr = ptr + ((struct fb*)ptr)->size;
         }
         else {
-            print((void*)i,t,0);
-            addr=addr + ((struct ub*)addr)->size;
-        };
-
-        i+=t;
+            print(ptr, ((struct ub*)ptr)->size, 0);
+            ptr = ptr + ((struct ub*)ptr)->size;
+        }
     }
+
 }
+    
+
 
 void mem_fit(mem_fit_function_t *f) {
     get_header()->fit = f;
@@ -124,9 +136,16 @@ void mem_fit(mem_fit_function_t *f) {
 
 void *mem_alloc(size_t taille) {
 
+    if (taille == 0) {
+        return NULL;
+    }
     if (taille < sizeof(struct fb)) {
         taille = sizeof(struct fb);
     }
+    if ((taille+sizeof(struct ub))%ALIGNMENT != 0) {
+        taille = taille + ALIGNMENT - (taille+sizeof(struct ub))%ALIGNMENT;
+    }
+
     __attribute__((
         unused)) /* juste pour que gcc compile ce squelette avec -Werror */
     struct fb *fb = get_header()->fit(get_header()->first_fb, taille);
@@ -136,7 +155,7 @@ void *mem_alloc(size_t taille) {
     struct fb *fb_prev = precedent(fb);
     struct ub *ub = (struct ub*)fb;
     
-
+    //
     if (fb->size==taille+sizeof(struct ub)){
         if (fb_prev == NULL)
             get_header()->first_fb = fb->next;
@@ -161,22 +180,14 @@ void *mem_alloc(size_t taille) {
     }
 
     ub->size = taille+sizeof(struct ub);
-    return (void*)(ub);
+
+
+    return (void*)(ub+1);
 }
 
 /*FONCTIONS POUR FREE*/
 
-// renvoie 1 si ptr est l'adresse d'un bloc libre, 0 sinon
-int is_fb(void *ptr){ 
-    void * fb = (void *)get_header()->first_fb;
-    while (fb != NULL) {
-        if (fb == ptr) {
-            return 1;
-        }
-        fb = ((struct fb*)fb)->next;
-    }
-    return 0;
-}
+
 
 // renvoie dernier bloc libre avant ptr
 void *prev_fb(void *ptr){
@@ -219,10 +230,11 @@ void fusion_fb(){
 }
 
 void mem_free(void *mem) {
-    if (is_fb(mem)==1) return;
-    
+
+    mem = mem - sizeof(struct ub);
     //libération du bloc:
     size_t s = ((struct ub*)mem)->size;
+    ((struct ub*)mem)->size = 0;    
     struct fb *free_fb = mem;
     free_fb->size = s;
     free_fb->next = NULL;
@@ -243,6 +255,8 @@ void mem_free(void *mem) {
     
     //On fusionne les blocs libres adjacents
     fusion_fb();
+
+    
 }
 
 
@@ -270,15 +284,36 @@ size_t mem_get_size(void *zone) {
 
     /* la valeur retournée doit être la taille maximale que
      * l'utilisateur peut utiliser dans cette zone */
-    return 0;
+
+    struct ub *ub = (struct ub*)(zone - sizeof(struct ub));
+    return (size_t)(ub->size - sizeof(struct ub));
+
 }
 
 /* Fonctions facultatives
  * autres stratégies d'allocation
- */
+ Fonction renvoyant l'adresse du plus petit bloc libre de taille supérieure ou 
+ égale à size présent dans la liste de blocs libre dont l'adresse est list. 
+ Cette fonction est utilisable comme paramètre de mem_fit et, dans ce cas, remplace la fonction existante (mem_fit_first par défaut):
+ :*/
+
 struct fb *mem_fit_best(struct fb *list, size_t size) {
-    return NULL;
+    struct fb *ptr_fb = list;
+    struct fb *best_fb = NULL;
+    while (ptr_fb != NULL) {
+        if (ptr_fb->size >= size+sizeof(struct ub)) {
+            if (best_fb == NULL || ptr_fb->size < best_fb->size) {
+                best_fb = ptr_fb;
+            }
+        }
+        ptr_fb = ptr_fb->next;
+    }
+
+    return best_fb;
 }
+
+
+
 
 struct fb *mem_fit_worst(struct fb *list, size_t size) {
     return NULL;
