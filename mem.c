@@ -117,10 +117,12 @@ void mem_show(void (*print)(void *, size_t, int)) {
     void *ptr = get_header()+1;
     while (ptr < get_system_memory_addr() + get_system_memory_size()) {
         if (is_fb(ptr)) {
+            //affichage du bloc libre
             print(ptr, ((struct fb*)ptr)->size, 1);
             ptr = ptr + ((struct fb*)ptr)->size;
         }
         else {
+            //affichage du bloc occupé
             print(ptr, ((struct ub*)ptr)->size, 0);
             ptr = ptr + ((struct ub*)ptr)->size;
         }
@@ -139,15 +141,19 @@ void *mem_alloc(size_t taille) {
     if (taille == 0) {
         return NULL;
     }
+    //la taille doit etre au minimum la taille de l'entete d'un bloc libre
     if (taille < sizeof(struct fb)) {
         taille = sizeof(struct fb);
     }
+    //les blocs occupés sont alignés sur ALIGNMENT
     if ((taille+sizeof(struct ub))%ALIGNMENT != 0) {
         taille = taille + ALIGNMENT - (taille+sizeof(struct ub))%ALIGNMENT;
     }
 
     __attribute__((
         unused)) /* juste pour que gcc compile ce squelette avec -Werror */
+
+    //selection du bloc libre avec la fonction de recherche choisie   
     struct fb *fb = get_header()->fit(get_header()->first_fb, taille);
     if (fb == NULL) {
         return NULL;
@@ -155,7 +161,7 @@ void *mem_alloc(size_t taille) {
     struct fb *fb_prev = precedent(fb);
     struct ub *ub = (struct ub*)fb;
     
-    //
+    //cas où le bloc libre est exactement de la bonne taille
     if (fb->size==taille+sizeof(struct ub)){
         if (fb_prev == NULL)
             get_header()->first_fb = fb->next;
@@ -164,10 +170,11 @@ void *mem_alloc(size_t taille) {
 
     }
     else {
-
+        //creation d'un nouveau bloc libre
         struct fb *fb_new = (void*)fb+ sizeof(struct ub) + taille;
         fb_new->size = fb->size - (sizeof(struct ub) + taille);
 
+        //et modification en conséquence de la liste chainée de blocs libres
         if (fb_prev != NULL){
             fb_prev->next = fb_new;
             fb_new->next = fb->next;
@@ -181,13 +188,12 @@ void *mem_alloc(size_t taille) {
 
     ub->size = taille+sizeof(struct ub);
 
-
+    //on retourne l'endroit où on peut écrire les données
     return (void*)(ub+1);
 }
 
-/*FONCTIONS POUR FREE*/
 
-
+/*--------------FONCTIONS POUR FREE-----------------*/
 
 // renvoie dernier bloc libre avant ptr
 void *prev_fb(void *ptr){
@@ -215,7 +221,7 @@ void *next_fb(void *ptr){
     return NULL;
 }
 
-//fonction qui fusionne les blocs libres adjacents
+//fonction qui fusionne les blocs libres adjacents dans la liste chainée
 void fusion_fb(){
     struct fb *fb = get_header()->first_fb;
     while (fb->next != NULL){
@@ -232,7 +238,7 @@ void fusion_fb(){
 void mem_free(void *mem) {
 
     mem = mem - sizeof(struct ub);
-    //libération du bloc:
+    //on transforme le bloc occupé en bloc libre
     size_t s = ((struct ub*)mem)->size;
     ((struct ub*)mem)->size = 0;    
     struct fb *free_fb = mem;
@@ -260,7 +266,7 @@ void mem_free(void *mem) {
 }
 
 
-
+// choisir la première zone libre de taille suffisante
 struct fb *mem_fit_first(struct fb *list, size_t size) {
     struct fb *ptr_fb = list;
     while (ptr_fb != NULL) {
@@ -314,7 +320,18 @@ struct fb *mem_fit_best(struct fb *list, size_t size) {
 
 
 
-
+// ...
 struct fb *mem_fit_worst(struct fb *list, size_t size) {
-    return NULL;
+    struct fb *ptr_fb = list;
+    struct fb *worst_fb = NULL;
+    while (ptr_fb != NULL) {
+        if (ptr_fb->size >= size+sizeof(struct ub)) {
+            if (worst_fb == NULL || ptr_fb->size > worst_fb->size) {
+                worst_fb = ptr_fb;
+            }
+        }
+        ptr_fb = ptr_fb->next;
+    }
+
+    return worst_fb;
 }

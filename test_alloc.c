@@ -23,11 +23,11 @@ void afficher_zone_occupee(void *adresse, size_t taille, int free) {
 }
 
 int main(int argc, char *argv[]) {
-    fprintf(stderr, "\n Test réalisant de multiples fois une initialisation "
+    fprintf(stderr, "\n-------------------TEST ALLOC------------------------\nTest réalisant de multiples fois une initialisation "
                     "suivie d'une alloc max.\n"
                     "Définir DEBUG à la compilation pour avoir une sortie un "
                     "peu plus verbeuse."
-                    "\n \n ");
+                    "\n\n");
     mem_init(get_memory_adr(), get_memory_size());
     srand(clock());
     for (int i = 0; i < NB_TESTS; i++) {

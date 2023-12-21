@@ -21,7 +21,7 @@ void afficher_zone_occupee(void *adresse, size_t taille, int free) {
 }
 
 int main(int argc, char *argv[]) {
-    fprintf(stderr, "Test réalisant des allocations et des libérations "
+    fprintf(stderr, "\n------------------TEST FREE-------------------------\nTest réalisant des allocations et des libérations "
                     "afin de verifier la fusion  des blocs libres."
                     "et le bon fonctionnement de la fonction de mem_free"
                     "\n\n");
@@ -58,7 +58,9 @@ int main(int argc, char *argv[]) {
     mem_free(ptr[9]);
     mem_show(afficher_zone);
 
+    
+
   
-    // TEST OK
-    return 0;
+  debug("test_free OK\n");
+  return 0;
 }
